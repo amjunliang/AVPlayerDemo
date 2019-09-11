@@ -22,6 +22,8 @@
 		CD41BF7B19177EE0009C283A /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = CD41BF7919177EE0009C283A /* InfoPlist.strings */; };
 		CD41BF7D19177EE0009C283A /* AVPlayerDemoTests.m in Sources */ = {isa = PBXBuildFile; fileRef = CD41BF7C19177EE0009C283A /* AVPlayerDemoTests.m */; };
 		CD41BF88191780FC009C283A /* PlayerView.m in Sources */ = {isa = PBXBuildFile; fileRef = CD41BF87191780FC009C283A /* PlayerView.m */; };
+		F6D3E7542328E54B0067F9E1 /* ZYMediaPlayView.m in Sources */ = {isa = PBXBuildFile; fileRef = F6D3E7532328E54B0067F9E1 /* ZYMediaPlayView.m */; };
+		F6D3E7582328F6BC0067F9E1 /* ZYMediaPlayer.m in Sources */ = {isa = PBXBuildFile; fileRef = F6D3E7572328F6BC0067F9E1 /* ZYMediaPlayer.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -56,6 +58,10 @@
 		CD41BF7C19177EE0009C283A /* AVPlayerDemoTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AVPlayerDemoTests.m; sourceTree = "<group>"; };
 		CD41BF86191780FC009C283A /* PlayerView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlayerView.h; sourceTree = "<group>"; };
 		CD41BF87191780FC009C283A /* PlayerView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PlayerView.m; sourceTree = "<group>"; };
+		F6D3E7522328E54B0067F9E1 /* ZYMediaPlayView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZYMediaPlayView.h; sourceTree = "<group>"; };
+		F6D3E7532328E54B0067F9E1 /* ZYMediaPlayView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZYMediaPlayView.m; sourceTree = "<group>"; };
+		F6D3E7562328F6BC0067F9E1 /* ZYMediaPlayer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZYMediaPlayer.h; sourceTree = "<group>"; };
+		F6D3E7572328F6BC0067F9E1 /* ZYMediaPlayer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZYMediaPlayer.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -122,6 +128,9 @@
 				CD41BF6719177EE0009C283A /* ViewController.m */,
 				CD41BF86191780FC009C283A /* PlayerView.h */,
 				CD41BF87191780FC009C283A /* PlayerView.m */,
+				F6D3E7562328F6BC0067F9E1 /* ZYMediaPlayer.h */,
+				F6D3E7572328F6BC0067F9E1 /* ZYMediaPlayer.m */,
+				F6D3E7552328E5510067F9E1 /* Media */,
 				CD41BF6919177EE0009C283A /* Images.xcassets */,
 				CD41BF5819177EE0009C283A /* Supporting Files */,
 			);
@@ -155,6 +164,15 @@
 				CD41BF7919177EE0009C283A /* InfoPlist.strings */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		F6D3E7552328E5510067F9E1 /* Media */ = {
+			isa = PBXGroup;
+			children = (
+				F6D3E7522328E54B0067F9E1 /* ZYMediaPlayView.h */,
+				F6D3E7532328E54B0067F9E1 /* ZYMediaPlayView.m */,
+			);
+			name = Media;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -264,6 +282,8 @@
 				CD41BF6819177EE0009C283A /* ViewController.m in Sources */,
 				CD41BF6219177EE0009C283A /* AppDelegate.m in Sources */,
 				CD41BF5E19177EE0009C283A /* main.m in Sources */,
+				F6D3E7542328E54B0067F9E1 /* ZYMediaPlayView.m in Sources */,
+				F6D3E7582328F6BC0067F9E1 /* ZYMediaPlayer.m in Sources */,
 				CD41BF88191780FC009C283A /* PlayerView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

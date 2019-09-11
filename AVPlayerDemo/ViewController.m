@@ -20,15 +20,17 @@
     NSDateFormatter *_dateFormatter;
 }
 
+@property (nonatomic ,weak) IBOutlet UIButton *stateButton; //播放按钮
+@property (nonatomic ,weak) IBOutlet UILabel *timeLabel; //时间信息
+@property (nonatomic ,weak) IBOutlet UISlider *videoSlider; // 滑动条
+@property (nonatomic ,weak) IBOutlet UIProgressView *videoProgress; // 缓存进度
+@property (nonatomic ,weak) IBOutlet UIActivityIndicatorView *indicatorView; // loading状态
+
+
 @property (nonatomic ,strong) AVPlayer *player;
 @property (nonatomic ,strong) AVPlayerItem *playerItem;
 @property (nonatomic ,weak) IBOutlet PlayerView *playerView;
-@property (nonatomic ,weak) IBOutlet UIButton *stateButton;
-@property (nonatomic ,weak) IBOutlet UILabel *timeLabel;
 @property (nonatomic ,strong) id playbackTimeObserver;
-@property (nonatomic ,weak) IBOutlet UISlider *videoSlider;
-@property (nonatomic ,weak) IBOutlet UIProgressView *videoProgress;
-@property (nonatomic ,weak) IBOutlet UIActivityIndicatorView *indicatorView;
 
 
 - (IBAction)stateButtonTouched:(id)sender;
@@ -216,6 +218,7 @@ static NSString * const kTestURL = @"http://commondatastorage.googleapis.com/gtv
 }
 
 - (IBAction)videoSlierChangeValueEnd:(id)sender {
+    UIControl *c= nil;
     self->_slide  = NO;
     __weak typeof(self) weakSelf = self;
     [self seekTo:CMTimeMakeWithSeconds(CMTimeGetSeconds(self.playerItem.duration) * self.videoSlider.value, 600) complate:^{
