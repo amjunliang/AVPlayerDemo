@@ -33,12 +33,25 @@
 - (IBAction)videoSlierChangeValue:(id)sender;
 - (IBAction)videoSlierChangeValueEnd:(id)sender;
 
+@property(nonatomic, strong) CADisplayLink *link; //卡顿监控
+
 @end
 
 @implementation ViewController
 //static NSString * const kTestURL = @"http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4";
 //static NSString * const kTestURL = @"http://v.jxvdy.com/sendfile/w5bgP3A8JgiQQo5l0hvoNGE2H16WbN09X-ONHPq3P3C1BISgf7C-qVs6_c8oaw3zKScO78I--b0BGFBRxlpw13sf2e54QA";
 static NSString * const kTestURL = @"http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+
+- (void)removePlayLoadingCheck
+{
+    [self.link invalidate];
+    self.link = nil;
+}
+- (void)addPlayLoadingCheck
+{
+    self.link = [CADisplayLink displayLinkWithTarget:self selector:@selector(updateUI)];
+    [self.link addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
+}
 
 - (void)viewDidLoad
 {
@@ -60,7 +73,8 @@ static NSString * const kTestURL = @"http://commondatastorage.googleapis.com/gtv
     [self customVideoSlider];
     // 添加视频播放结束通知
     [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(moviePlayDidEnd:) name:AVPlayerItemDidPlayToEndTimeNotification object:_playerItem];
-    [self monitoringPlayback:self.playerItem];// 监听播放状态
+//    [self monitoringPlayback:self.playerItem];// 监听播放状态
+    [self addPlayLoadingCheck];
 }
 
 - (void)viewDidLayoutSubviews {
@@ -76,7 +90,7 @@ static NSString * const kTestURL = @"http://commondatastorage.googleapis.com/gtv
     
     __weak typeof(self) weakSelf = self;
     self.playbackTimeObserver = [self.playerView.player addPeriodicTimeObserverForInterval:CMTimeMake((1/24.0)*600, 600) queue:NULL usingBlock:^(CMTime time) {
-        [weakSelf updateUI];
+        //[weakSelf updateUI];
     }];
 }
 
@@ -103,17 +117,18 @@ static NSString * const kTestURL = @"http://commondatastorage.googleapis.com/gtv
     }
     
     double availableDuration =  [self safeDouble: [self availableDuration]];// 计算缓冲进度
-    [self.videoProgress setProgress:availableDuration / duration animated:YES];
+    [self.videoProgress setProgress:availableDuration / duration animated:NO];
 
-    if (_played) {
-        BOOL isLoad = NO;
-        for (NSValue *value in self.playerItem.loadedTimeRanges) {
-            if( CMTimeRangeContainsTime(value.CMTimeRangeValue, self.playerItem.currentTime)) {
-                isLoad = YES;
-                break;
-            }
+    BOOL isLoad = NO;
+    for (NSValue *value in self.playerItem.loadedTimeRanges) {
+        if( CMTimeRangeContainsTime(value.CMTimeRangeValue, self.playerItem.currentTime)) {
+            isLoad = YES;
+            break;
         }
-        
+    }
+
+    
+    if (_played) {
         if (isLoad) {
             [self.indicatorView stopAnimating];
             if (self.player.rate == 0) {
@@ -124,7 +139,11 @@ static NSString * const kTestURL = @"http://commondatastorage.googleapis.com/gtv
         }
        
     } else {
-        [self.indicatorView stopAnimating];
+        if (!isLoad) {
+            [self.indicatorView startAnimating];
+        } else {
+            [self.indicatorView stopAnimating];
+        }
     }
 }
 
@@ -138,7 +157,6 @@ static NSString * const kTestURL = @"http://commondatastorage.googleapis.com/gtv
                 NSLog(@"AVPlayerStatusReadyToPlay");
                 self.stateButton.enabled = YES;
                 self.videoSlider.userInteractionEnabled = YES;
-                [self updateUI];
             } else if ([playerItem status] == AVPlayerStatusFailed) {
                 NSLog(@"AVPlayerStatusFailed");
             }
@@ -181,14 +199,15 @@ static NSString * const kTestURL = @"http://commondatastorage.googleapis.com/gtv
 }
 
 - (IBAction)videoSlierChangeValue:(id)sender {
-    [self updateUI];
 }
 
 - (IBAction)videoSlierChangeValueEnd:(id)sender {
     __weak typeof(self) weakSelf = self;
     [self.playerView.player seekToTime:CMTimeMakeWithSeconds(CMTimeGetSeconds(self.playerItem.duration) * self.videoSlider.value, 600) completionHandler:^(BOOL finished) {
-        [weakSelf.playerView.player play];
-        [weakSelf.stateButton setTitle:@"Stop" forState:UIControlStateNormal];
+        if (self->_played) {
+            [weakSelf.playerView.player play];
+            [weakSelf.stateButton setTitle:@"Stop" forState:UIControlStateNormal];
+        }
         self->_slide  = NO;
     }];
 }
@@ -231,6 +250,7 @@ static NSString * const kTestURL = @"http://commondatastorage.googleapis.com/gtv
     [self.playerItem removeObserver:self forKeyPath:@"loadedTimeRanges" context:nil];
     [[NSNotificationCenter defaultCenter] removeObserver:self name:AVPlayerItemDidPlayToEndTimeNotification object:self.playerItem];
     [self.playerView.player removeTimeObserver:self.playbackTimeObserver];
+    [self removePlayLoadingCheck];
 }
 
 - (void)didReceiveMemoryWarning
