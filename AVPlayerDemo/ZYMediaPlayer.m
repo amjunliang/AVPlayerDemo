@@ -92,12 +92,12 @@
 
 - (NSTimeInterval)duration {
     NSTimeInterval duration = CMTimeGetSeconds(_player.currentItem.duration);
-    return duration;
+    return [self safeDouble:duration];
 }
 
 - (NSTimeInterval)currentTime {
     NSTimeInterval time = CMTimeGetSeconds(_player.currentTime);
-    return time;
+    return [self safeDouble:time];
 }
 
 - (void)mute:(BOOL)mute {
@@ -108,14 +108,65 @@
     return _playerLayer;
 }
 
-#pragma mark - Private
 
-- (void)removePlayLoadingCheck
+
+#pragma mark - Private
+- (NSTimeInterval)availableDuration {
+    if (!_playerItem) {
+        return 0;
+    }
+    
+    NSArray *loadedTimeRanges = [_playerItem loadedTimeRanges];
+    CMTimeRange timeRange = [loadedTimeRanges.firstObject CMTimeRangeValue];// 获取缓冲区域
+    float startSeconds = CMTimeGetSeconds(timeRange.start);
+    float durationSeconds = CMTimeGetSeconds(timeRange.duration);
+    NSTimeInterval result = startSeconds + durationSeconds;// 计算缓冲总进度
+    return result;
+}
+
+- (double)safeDouble:(double)value
+{
+    if (isnan(value)) {
+        return 0;
+    }
+    
+    if (value == 0) {
+        return 0;
+    }
+    return value;
+}
+
+- (void)updateUI
+{
+    if (!_playerItem) {
+        return;
+    }
+    
+    double duration = [self duration];
+    double currentTime = [self currentTime];
+    double availableDuration = [self availableDuration];// 计算缓冲进度
+    
+    BOOL isLoad = NO;
+    for (NSValue *value in _playerItem.loadedTimeRanges) {
+        if( CMTimeRangeContainsTime(value.CMTimeRangeValue, _playerItem.currentTime)) {
+            isLoad = YES;
+            break;
+        }
+    }
+    
+    if (self.delegate && [self.delegate respondsToSelector:@selector(playerUpdateWithDuration:currentTime:availableDuration:assetLoaded:)]) {
+        [self.delegate playerUpdateWithDuration:duration currentTime:currentTime availableDuration:availableDuration assetLoaded:isLoad];
+    }
+
+}
+
+- (void)removePlayStatuCheck
 {
     [self.link invalidate];
     self.link = nil;
 }
-- (void)addPlayLoadingCheck
+
+- (void)addPlayStatuCheck
 {
     self.link = [CADisplayLink displayLinkWithTarget:self selector:@selector(updateUI)];
     [self.link addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
@@ -129,22 +180,13 @@
     if (!url) {
         return;
     }
+    
     _playerItem = [AVPlayerItem playerItemWithURL:url];
     _player = [AVPlayer playerWithPlayerItem:_playerItem];
-    //0.2秒刷新一次
-    __weak typeof(self) weakSelf = self;
-    _playerTimeObserver = [_player addPeriodicTimeObserverForInterval:CMTimeMake(1.0, 5.0) queue:dispatch_get_main_queue() usingBlock:^(CMTime time) {
-        if ([weakSelf duration] > 0) {
-            CGFloat playDuration = CMTimeGetSeconds(time);
-            if (weakSelf.delegate && [weakSelf.delegate respondsToSelector:@selector(player:playToTime:)]) {
-                [weakSelf.delegate player:weakSelf playToTime:playDuration];
-            }
-        }
-    }];
-    //107216 正式
     _playerLayer = [AVPlayerLayer playerLayerWithPlayer:_player];
     _playerLayer.videoGravity = AVLayerVideoGravityResizeAspect;
     
+    [self addPlayStatuCheck];
     [self addObserver];
 }
 
@@ -196,7 +238,6 @@
         return;
     }
     if ([keyPath isEqualToString:@"status"]) {//播放状态
-        
         switch (_player.currentItem.status) {
             case AVPlayerItemStatusUnknown:
                 //资源尚未载入，不在播放队列中
@@ -215,21 +256,9 @@
                 break;
         }
     } else if ([keyPath isEqualToString:@"rate"]) {//播放速率
-        
     } else if ([keyPath isEqualToString:@"loadedTimeRanges"]) {//缓冲
-        if (self.delegate && [self.delegate respondsToSelector:@selector(player:loadedRangesChanged:)]) {
-            [self.delegate player:self loadedRangesChanged:_player.currentItem.loadedTimeRanges];
-        }
     } else if ([keyPath isEqualToString:@"playbackLikelyToKeepUp"]) {//buffer好了，可播放
-        if (_player.currentItem.playbackLikelyToKeepUp) {
-            if (self.delegate && [self.delegate respondsToSelector:@selector(playbackLikelyToKeepUp:)]) {
-                [self.delegate playbackLikelyToKeepUp:self];
-            }
-        }
     } else if ([keyPath isEqualToString:@"playbackBufferEmpty"]) { //buffer空了
-        if (_player.currentItem.playbackBufferEmpty) {
-            
-        }
     }
 }
 

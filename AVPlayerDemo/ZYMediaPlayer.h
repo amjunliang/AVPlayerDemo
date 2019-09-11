@@ -17,12 +17,13 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)playerDidReadyToPlay:(ZYMediaPlayer *)player;
 - (void)playerDidPlayFinish:(ZYMediaPlayer *)player;
-- (void)player:(ZYMediaPlayer *)player playToTime:(NSTimeInterval)time;
 - (void)player:(ZYMediaPlayer *)player didFailToPlay:(NSError *)error;
-- (void)player:(ZYMediaPlayer *)player loadedRangesChanged:(NSArray *)loadedRanges;
 - (void)playerDidStalled:(ZYMediaPlayer *)player;
-- (void)playbackLikelyToKeepUp:(ZYMediaPlayer *)player;
 
+- (void)playerUpdateWithDuration:(NSTimeInterval)duration
+                     currentTime:(NSTimeInterval)currentTime
+               availableDuration:(NSTimeInterval)availableDuration
+                     assetLoaded:(BOOL)isLoad;
 @end
 
 
