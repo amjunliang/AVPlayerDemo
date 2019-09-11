@@ -1,8 +1,12 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="7702" systemVersion="14D136" targetRuntime="iOS.CocoaTouch.iPad" propertyAccessControl="none" useAutolayout="YES" initialViewController="BYZ-38-t0r">
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14490.70" targetRuntime="iOS.CocoaTouch.iPad" propertyAccessControl="none" useAutolayout="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+    <device id="ipad9_7" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="7701"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14490.49"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
         <!--View Controller-->
@@ -14,17 +18,21 @@
                         <viewControllerLayoutGuide type="bottom" id="wfy-db-euE"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
-                        <rect key="frame" x="0.0" y="0.0" width="1024" height="768"/>
+                        <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="p0r-iQ-M77" customClass="PlayerView">
-                                <rect key="frame" x="0.0" y="20" width="1024" height="700"/>
-                                <color key="backgroundColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="p0r-iQ-M77" customClass="PlayerView">
+                                <rect key="frame" x="0.0" y="20" width="768" height="1004"/>
+                                <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                             </view>
-                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="QUw-Vm-uFZ">
-                                <rect key="frame" x="20" y="728" width="55" height="30"/>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="QUw-Vm-uFZ">
+                                <rect key="frame" x="20" y="984" width="55" height="30"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="55" id="knu-d9-6pC"/>
+                                    <constraint firstAttribute="height" constant="30" id="nRh-Tl-JQa"/>
+                                </constraints>
                                 <state key="normal" title="Play">
-                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                    <color key="titleShadowColor" red="0.5" green="0.5" blue="0.5" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 </state>
                                 <connections>
                                     <action selector="stateButtonTouched:" destination="BYZ-38-t0r" eventType="touchUpInside" id="URB-Ag-CFO"/>
@@ -32,25 +40,50 @@
                             </button>
                             <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="time" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="rwq-p5-OAQ">
                                 <rect key="frame" x="884" y="732" width="120" height="21"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="god-vo-UC7">
-                                <rect key="frame" x="114" y="743" width="797" height="2"/>
-                            </progressView>
-                            <slider opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" minValue="0.0" maxValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="aIe-I8-jWV">
-                                <rect key="frame" x="112" y="728" width="797" height="31"/>
-                                <color key="minimumTrackTintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                <connections>
-                                    <action selector="videoSlierChangeValue:" destination="BYZ-38-t0r" eventType="valueChanged" id="w42-Op-06n"/>
-                                    <action selector="videoSlierChangeValueEnd:" destination="BYZ-38-t0r" eventType="touchUpInside" id="zlK-FQ-Eib"/>
-                                </connections>
-                            </slider>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ere-1q-gi0">
+                                <rect key="frame" x="94" y="964" width="614" height="70"/>
+                                <subviews>
+                                    <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="god-vo-UC7">
+                                        <rect key="frame" x="0.0" y="34" width="628" height="2"/>
+                                    </progressView>
+                                    <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" minValue="0.0" maxValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="aIe-I8-jWV">
+                                        <rect key="frame" x="-2" y="20" width="618" height="31"/>
+                                        <color key="minimumTrackTintColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                        <connections>
+                                            <action selector="videoSlierChangeValue:" destination="BYZ-38-t0r" eventType="valueChanged" id="w42-Op-06n"/>
+                                            <action selector="videoSlierChangeValueEnd:" destination="BYZ-38-t0r" eventType="touchUpInside" id="zlK-FQ-Eib"/>
+                                        </connections>
+                                    </slider>
+                                </subviews>
+                                <constraints>
+                                    <constraint firstItem="god-vo-UC7" firstAttribute="width" secondItem="aIe-I8-jWV" secondAttribute="width" id="0z3-n6-1Bv"/>
+                                    <constraint firstAttribute="trailing" secondItem="aIe-I8-jWV" secondAttribute="trailing" id="5hd-QE-uXt"/>
+                                    <constraint firstItem="aIe-I8-jWV" firstAttribute="leading" secondItem="ere-1q-gi0" secondAttribute="leading" id="GQg-GZ-W50"/>
+                                    <constraint firstItem="god-vo-UC7" firstAttribute="centerX" secondItem="aIe-I8-jWV" secondAttribute="centerX" id="KZ4-uj-X8n"/>
+                                    <constraint firstItem="god-vo-UC7" firstAttribute="centerY" secondItem="aIe-I8-jWV" secondAttribute="centerY" id="LMt-NG-kbk"/>
+                                    <constraint firstItem="aIe-I8-jWV" firstAttribute="centerY" secondItem="ere-1q-gi0" secondAttribute="centerY" id="apr-U9-iYo"/>
+                                    <constraint firstAttribute="height" constant="70" id="tgG-o4-nCR"/>
+                                </constraints>
+                            </view>
                         </subviews>
-                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                        <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <constraints>
+                            <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="QUw-Vm-uFZ" secondAttribute="bottom" constant="10" id="1ac-0a-HlE"/>
+                            <constraint firstAttribute="trailing" secondItem="ere-1q-gi0" secondAttribute="trailing" constant="60" id="FnG-6l-CPp"/>
+                            <constraint firstItem="ere-1q-gi0" firstAttribute="centerY" secondItem="QUw-Vm-uFZ" secondAttribute="centerY" id="LNb-PW-5Vq"/>
+                            <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="p0r-iQ-M77" secondAttribute="bottom" id="OYX-Pj-6hQ"/>
+                            <constraint firstItem="ere-1q-gi0" firstAttribute="leading" secondItem="QUw-Vm-uFZ" secondAttribute="trailing" constant="19" id="Pkt-WA-38f"/>
+                            <constraint firstItem="p0r-iQ-M77" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" id="b6n-w0-76R"/>
+                            <constraint firstItem="p0r-iQ-M77" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" id="d4B-b1-Q84"/>
+                            <constraint firstAttribute="trailing" secondItem="p0r-iQ-M77" secondAttribute="trailing" id="ibN-Uh-ler"/>
+                            <constraint firstItem="QUw-Vm-uFZ" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leadingMargin" id="mzb-WX-PoM"/>
+                        </constraints>
                     </view>
-                    <simulatedOrientationMetrics key="simulatedOrientationMetrics" orientation="landscapeRight"/>
                     <connections>
                         <outlet property="playerView" destination="p0r-iQ-M77" id="jlh-9l-16T"/>
                         <outlet property="stateButton" destination="QUw-Vm-uFZ" id="ST4-NE-L9n"/>
@@ -61,12 +94,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="83" y="147"/>
+            <point key="canvasLocation" x="64.84375" y="86.1328125"/>
         </scene>
     </scenes>
-    <simulatedMetricsContainer key="defaultSimulatedMetrics">
-        <simulatedStatusBarMetrics key="statusBar"/>
-        <simulatedOrientationMetrics key="orientation"/>
-        <simulatedScreenMetrics key="destination"/>
-    </simulatedMetricsContainer>
 </document>
