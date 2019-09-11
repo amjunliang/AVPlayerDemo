@@ -14,7 +14,7 @@
 
 @interface ViewController () {
     BOOL _played;
-    NSString *_totalTime;
+    BOOL _slide;
     NSDateFormatter *_dateFormatter;
 }
 
@@ -26,6 +26,7 @@
 @property (nonatomic ,strong) id playbackTimeObserver;
 @property (nonatomic ,weak) IBOutlet UISlider *videoSlider;
 @property (nonatomic ,weak) IBOutlet UIProgressView *videoProgress;
+@property (nonatomic ,weak) IBOutlet UIActivityIndicatorView *indicatorView;
 
 
 - (IBAction)stateButtonTouched:(id)sender;
@@ -35,23 +36,31 @@
 @end
 
 @implementation ViewController
-
-static NSString * const kTestURL = @"http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4";
+//static NSString * const kTestURL = @"http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4";
+//static NSString * const kTestURL = @"http://v.jxvdy.com/sendfile/w5bgP3A8JgiQQo5l0hvoNGE2H16WbN09X-ONHPq3P3C1BISgf7C-qVs6_c8oaw3zKScO78I--b0BGFBRxlpw13sf2e54QA";
+static NSString * const kTestURL = @"http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
 
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    
+    _timeLabel.textAlignment = NSTextAlignmentCenter;
     
     NSURL *videoUrl = [NSURL URLWithString:kTestURL];
     self.playerItem = [AVPlayerItem playerItemWithURL:videoUrl];
     [self.playerItem addObserver:self forKeyPath:@"status" options:NSKeyValueObservingOptionNew context:nil];// 监听status属性
     [self.playerItem addObserver:self forKeyPath:@"loadedTimeRanges" options:NSKeyValueObservingOptionNew context:nil];// 监听loadedTimeRanges属性
     self.player = [AVPlayer playerWithPlayerItem:self.playerItem];
+    self.player.automaticallyWaitsToMinimizeStalling = NO;
     self.playerView.player = _player;
     self.stateButton.enabled = NO;
+    self.videoSlider.userInteractionEnabled = NO;
+    [self.indicatorView startAnimating];
 
+    [self customVideoSlider];
     // 添加视频播放结束通知
     [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(moviePlayDidEnd:) name:AVPlayerItemDidPlayToEndTimeNotification object:_playerItem];
+    [self monitoringPlayback:self.playerItem];// 监听播放状态
 }
 
 - (void)viewDidLayoutSubviews {
@@ -66,36 +75,74 @@ static NSString * const kTestURL = @"http://commondatastorage.googleapis.com/gtv
 - (void)monitoringPlayback:(AVPlayerItem *)playerItem {
     
     __weak typeof(self) weakSelf = self;
-    self.playbackTimeObserver = [self.playerView.player addPeriodicTimeObserverForInterval:CMTimeMake(1, 1) queue:NULL usingBlock:^(CMTime time) {
-        CGFloat currentSecond = playerItem.currentTime.value/playerItem.currentTime.timescale;// 计算当前在第几秒
-        [weakSelf.videoSlider setValue:currentSecond animated:YES];
-        NSString *timeString = [self convertTime:currentSecond];
-        weakSelf.timeLabel.text = [NSString stringWithFormat:@"%@/%@",timeString,_totalTime];
+    self.playbackTimeObserver = [self.playerView.player addPeriodicTimeObserverForInterval:CMTimeMake((1/24.0)*600, 600) queue:NULL usingBlock:^(CMTime time) {
+        [weakSelf updateUI];
     }];
+}
+
+- (double)safeDouble:(double)value
+{
+    if (isnan(value)) {
+        return 0;
+    }
+    
+    if (value == 0) {
+        return 0;
+    }
+    return value;
+}
+
+- (void)updateUI
+{
+    double duration = [self safeDouble: CMTimeGetSeconds(self.playerItem.duration)] ?:1;
+    double current = [self safeDouble: CMTimeGetSeconds(self.playerItem.currentTime)];
+    
+    if (!_slide) {
+        self.videoSlider.value = current/duration;
+        self.timeLabel.text = [NSString stringWithFormat:@"%.fs/%.fs",current,duration];
+    }
+    
+    double availableDuration =  [self safeDouble: [self availableDuration]];// 计算缓冲进度
+    [self.videoProgress setProgress:availableDuration / duration animated:YES];
+
+    if (_played) {
+        BOOL isLoad = NO;
+        for (NSValue *value in self.playerItem.loadedTimeRanges) {
+            if( CMTimeRangeContainsTime(value.CMTimeRangeValue, self.playerItem.currentTime)) {
+                isLoad = YES;
+                break;
+            }
+        }
+        
+        if (isLoad) {
+            [self.indicatorView stopAnimating];
+            if (self.player.rate == 0) {
+                self.player.rate = 1;
+            }
+        } else {
+            [self.indicatorView startAnimating];
+        }
+       
+    } else {
+        [self.indicatorView stopAnimating];
+    }
 }
 
 // KVO方法
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
     AVPlayerItem *playerItem = (AVPlayerItem *)object;
-    if ([keyPath isEqualToString:@"status"]) {
-        if ([playerItem status] == AVPlayerStatusReadyToPlay) {
-            NSLog(@"AVPlayerStatusReadyToPlay");
-            self.stateButton.enabled = YES;
-            CMTime duration = self.playerItem.duration;// 获取视频总长度
-            CGFloat totalSecond = playerItem.duration.value / playerItem.duration.timescale;// 转换成秒
-            _totalTime = [self convertTime:totalSecond];// 转换成播放时间
-            [self customVideoSlider:duration];// 自定义UISlider外观
-            NSLog(@"movie total duration:%f",CMTimeGetSeconds(duration));
-            [self monitoringPlayback:self.playerItem];// 监听播放状态
-        } else if ([playerItem status] == AVPlayerStatusFailed) {
-            NSLog(@"AVPlayerStatusFailed");
+    if (object == self.playerItem) {
+        [self.indicatorView stopAnimating];
+        if ([keyPath isEqualToString:@"status"]) {
+            if ([playerItem status] == AVPlayerStatusReadyToPlay) {
+                NSLog(@"AVPlayerStatusReadyToPlay");
+                self.stateButton.enabled = YES;
+                self.videoSlider.userInteractionEnabled = YES;
+                [self updateUI];
+            } else if ([playerItem status] == AVPlayerStatusFailed) {
+                NSLog(@"AVPlayerStatusFailed");
+            }
         }
-    } else if ([keyPath isEqualToString:@"loadedTimeRanges"]) {
-        NSTimeInterval timeInterval = [self availableDuration];// 计算缓冲进度
-        NSLog(@"Time Interval:%f",timeInterval);
-        CMTime duration = _playerItem.duration;
-        CGFloat totalDuration = CMTimeGetSeconds(duration);
-        [self.videoProgress setProgress:timeInterval / totalDuration animated:YES];
     }
 }
 
@@ -108,14 +155,14 @@ static NSString * const kTestURL = @"http://commondatastorage.googleapis.com/gtv
     return result;
 }
 
-- (void)customVideoSlider:(CMTime)duration {
-    self.videoSlider.maximumValue = CMTimeGetSeconds(duration);
+- (void)customVideoSlider
+{
     UIGraphicsBeginImageContextWithOptions((CGSize){ 1, 1 }, NO, 0.0f);
     UIImage *transparentImage = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
-    
     [self.videoSlider setMinimumTrackImage:transparentImage forState:UIControlStateNormal];
     [self.videoSlider setMaximumTrackImage:transparentImage forState:UIControlStateNormal];
+    [self.videoSlider layoutIfNeeded];
 }
 
 - (IBAction)stateButtonTouched:(id)sender {
@@ -129,27 +176,20 @@ static NSString * const kTestURL = @"http://commondatastorage.googleapis.com/gtv
     _played = !_played;
 }
 
+- (IBAction)videoSlierChangeValueBegin:(id)sender {
+    _slide = YES;
+}
+
 - (IBAction)videoSlierChangeValue:(id)sender {
-    UISlider *slider = (UISlider *)sender;
-    NSLog(@"value change:%f",slider.value);
-    
-    if (slider.value == 0.000000) {
-        __weak typeof(self) weakSelf = self;
-        [self.playerView.player seekToTime:kCMTimeZero completionHandler:^(BOOL finished) {
-            [weakSelf.playerView.player play];
-        }];
-    }
+    [self updateUI];
 }
 
 - (IBAction)videoSlierChangeValueEnd:(id)sender {
-    UISlider *slider = (UISlider *)sender;
-    NSLog(@"value end:%f",slider.value);
-    CMTime changedTime = CMTimeMakeWithSeconds(slider.value, 1);
-    
     __weak typeof(self) weakSelf = self;
-    [self.playerView.player seekToTime:changedTime completionHandler:^(BOOL finished) {
+    [self.playerView.player seekToTime:CMTimeMakeWithSeconds(CMTimeGetSeconds(self.playerItem.duration) * self.videoSlider.value, 600) completionHandler:^(BOOL finished) {
         [weakSelf.playerView.player play];
         [weakSelf.stateButton setTitle:@"Stop" forState:UIControlStateNormal];
+        self->_slide  = NO;
     }];
 }
 
