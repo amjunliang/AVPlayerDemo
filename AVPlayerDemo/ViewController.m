@@ -15,6 +15,8 @@
 @interface ViewController () {
     BOOL _played;
     BOOL _slide;
+    BOOL _seek;
+
     NSDateFormatter *_dateFormatter;
 }
 
@@ -139,7 +141,7 @@ static NSString * const kTestURL = @"http://commondatastorage.googleapis.com/gtv
         }
        
     } else {
-        if (!isLoad) {
+        if (!isLoad && _seek) {
             [self.indicatorView startAnimating];
         } else {
             [self.indicatorView stopAnimating];
@@ -199,16 +201,28 @@ static NSString * const kTestURL = @"http://commondatastorage.googleapis.com/gtv
 }
 
 - (IBAction)videoSlierChangeValue:(id)sender {
+    
+}
+
+- (void)seekTo:(CMTime)time complate:(void (^)(void))complate
+{
+    _seek = YES;
+    [self.playerView.player seekToTime:time toleranceBefore:kCMTimeZero toleranceAfter:kCMTimeZero completionHandler:^(BOOL finished) {
+        if (complate) {
+            complate();
+            self->_seek = NO;
+        }
+    }];
 }
 
 - (IBAction)videoSlierChangeValueEnd:(id)sender {
+    self->_slide  = NO;
     __weak typeof(self) weakSelf = self;
-    [self.playerView.player seekToTime:CMTimeMakeWithSeconds(CMTimeGetSeconds(self.playerItem.duration) * self.videoSlider.value, 600) completionHandler:^(BOOL finished) {
+    [self seekTo:CMTimeMakeWithSeconds(CMTimeGetSeconds(self.playerItem.duration) * self.videoSlider.value, 600) complate:^{
         if (self->_played) {
             [weakSelf.playerView.player play];
             [weakSelf.stateButton setTitle:@"Stop" forState:UIControlStateNormal];
         }
-        self->_slide  = NO;
     }];
 }
 
@@ -219,12 +233,7 @@ static NSString * const kTestURL = @"http://commondatastorage.googleapis.com/gtv
 
 - (void)moviePlayDidEnd:(NSNotification *)notification {
     NSLog(@"Play end");
-    
-    __weak typeof(self) weakSelf = self;
-    [self.playerView.player seekToTime:kCMTimeZero completionHandler:^(BOOL finished) {
-        [weakSelf.videoSlider setValue:0.0 animated:YES];
-        [weakSelf.stateButton setTitle:@"Play" forState:UIControlStateNormal];
-    }];
+    [self seekTo:kCMTimeZero complate:nil];
 }
 
 - (NSString *)convertTime:(CGFloat)second{

@@ -49,7 +49,7 @@
                                         <color key="minimumTrackTintColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                         <connections>
                                             <action selector="videoSlierChangeValue:" destination="BYZ-38-t0r" eventType="valueChanged" id="w42-Op-06n"/>
-                                            <action selector="videoSlierChangeValueBegin:" destination="BYZ-38-t0r" eventType="touchDown" id="o1f-Jj-0Ow"/>
+                                            <action selector="videoSlierChangeValueBegin:" destination="BYZ-38-t0r" eventType="touchDown" id="Kfk-v2-6Xj"/>
                                             <action selector="videoSlierChangeValueEnd:" destination="BYZ-38-t0r" eventType="touchUpInside" id="zlK-FQ-Eib"/>
                                         </connections>
                                     </slider>
