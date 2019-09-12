@@ -1,9 +1,9 @@
 //
-//  ViewController.h
+//  ZYMediaPlayView.m
 //  AVPlayerDemo
 //
-//  Created by CaoJie on 14-5-5.
-//  Copyright (c) 2014年 yiban. All rights reserved.
+//  Created by MaJunliang on 2019/9/11.
+//  Copyright © 2019 yiban. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>

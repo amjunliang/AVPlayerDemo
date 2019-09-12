@@ -127,8 +127,6 @@
 				CD41BF6019177EE0009C283A /* AppDelegate.h */,
 				CD41BF6119177EE0009C283A /* AppDelegate.m */,
 				CD41BF6319177EE0009C283A /* Main.storyboard */,
-				CD41BF6619177EE0009C283A /* ViewController.h */,
-				CD41BF6719177EE0009C283A /* ViewController.m */,
 				CD41BF86191780FC009C283A /* PlayerView.h */,
 				CD41BF87191780FC009C283A /* PlayerView.m */,
 				F6D3E7552328E5510067F9E1 /* Media */,
@@ -170,6 +168,8 @@
 		F6D3E7552328E5510067F9E1 /* Media */ = {
 			isa = PBXGroup;
 			children = (
+				CD41BF6619177EE0009C283A /* ViewController.h */,
+				CD41BF6719177EE0009C283A /* ViewController.m */,
 				F6D3E7522328E54B0067F9E1 /* ZYMediaPlayView.h */,
 				F6D3E7532328E54B0067F9E1 /* ZYMediaPlayView.m */,
 				F6D3E7562328F6BC0067F9E1 /* ZYMediaPlayer.h */,
@@ -228,6 +228,7 @@
 				ORGANIZATIONNAME = yiban;
 				TargetAttributes = {
 					CD41BF4D19177EE0009C283A = {
+						DevelopmentTeam = Y9EA8DHFC5;
 						SystemCapabilities = {
 							com.apple.BackgroundModes = {
 								enabled = 0;
@@ -446,6 +447,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				DEVELOPMENT_TEAM = Y9EA8DHFC5;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "AVPlayerDemo/AVPlayerDemo-Prefix.pch";
 				INFOPLIST_FILE = "AVPlayerDemo/AVPlayerDemo-Info.plist";
@@ -462,6 +464,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				DEVELOPMENT_TEAM = Y9EA8DHFC5;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "AVPlayerDemo/AVPlayerDemo-Prefix.pch";
 				INFOPLIST_FILE = "AVPlayerDemo/AVPlayerDemo-Info.plist";

@@ -1,9 +1,9 @@
 //
-//  ViewController.m
+//  ZYMediaPlayView.m
 //  AVPlayerDemo
 //
-//  Created by CaoJie on 14-5-5.
-//  Copyright (c) 2014年 yiban. All rights reserved.
+//  Created by MaJunliang on 2019/9/11.
+//  Copyright © 2019 yiban. All rights reserved.
 //
 
 #import "ViewController.h"
@@ -31,9 +31,8 @@
 @end
 
 @implementation ViewController
-//static NSString * const kTestURL = @"http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4";
-//static NSString * const kTestURL = @"http://v.jxvdy.com/sendfile/w5bgP3A8JgiQQo5l0hvoNGE2H16WbN09X-ONHPq3P3C1BISgf7C-qVs6_c8oaw3zKScO78I--b0BGFBRxlpw13sf2e54QA";
-static NSString * const kTestURL = @"http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4";
+static NSString * const kTestURL = @"http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4";
+//static NSString * const kTestURL = @"http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4";
 
 - (void)viewDidLoad
 {

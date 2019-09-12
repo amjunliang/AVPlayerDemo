@@ -40,8 +40,12 @@ NS_ASSUME_NONNULL_BEGIN
           complete:(void (^)(BOOL finished))complete;
 - (NSTimeInterval)duration;//视频总时长，单位秒
 - (void)mute:(BOOL)mute;//是否静音
+
 - (BOOL)isPlayFinish;
 - (BOOL)isPlaying;
+
+- (void)popFullScreenOriginal:(CGRect)original
+           fromViewController:(UIViewController *)viewController;
 @end
 
 NS_ASSUME_NONNULL_END

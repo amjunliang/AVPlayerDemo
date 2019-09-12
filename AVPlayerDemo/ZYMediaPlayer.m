@@ -119,6 +119,12 @@
     _player.muted = mute;
 }
 
+- (void)popFullScreenOriginal:(CGRect)original
+           fromViewController:(UIViewController *)viewController
+{
+    
+}
+
 - (AVPlayerLayer *)layer {
     return _playerLayer;
 }
@@ -303,27 +309,21 @@
     }
     
     NSError *error = nil;
-    BOOL needReset = NO;
 
-    if (!self.readyToPlay) {
-        error = [NSError errorWithDomain:[NSString stringWithFormat:@"com.iReader.%@",NSStringFromClass(self.class)] code:-1 userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"播放器未初始化完成无效",NSLocalizedDescriptionKey,nil]];
-    }
-    
     if (!error && _player.error) {
         error = _player.error;
-        needReset = YES;
     }
     
     if (!error && _playerItem.error) {
         error = _playerItem.error;
-        needReset = YES;
     }
     
-    if (needReset) {
-        [self setup];
+    if (!error && !self.readyToPlay) {
+        error = [NSError errorWithDomain:[NSString stringWithFormat:@"com.iReader.%@",NSStringFromClass(self.class)] code:-1 userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"播放器未初始化",NSLocalizedDescriptionKey,nil]];
     }
     
     if (error) {
+        [_player play];
         if (notiDelegate && self.delegate && [self.delegate respondsToSelector:@selector(player:didFailToPlay:)]) {
             [self.delegate player:self didFailToPlay:error];
         }
