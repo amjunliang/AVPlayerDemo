@@ -33,16 +33,13 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong, readonly)AVPlayerLayer *layer;
 
 - (instancetype)initWithUrl:(NSString *)mediaUrl;
-
 - (void)play;
 - (void)pause;
-
 - (void)replay;
 - (void)seekToTime:(NSTimeInterval)seconds
           complete:(void (^)(BOOL finished))complete;
 - (NSTimeInterval)duration;//视频总时长，单位秒
 - (void)mute:(BOOL)mute;//是否静音
-
 - (BOOL)isPlayFinish;
 - (BOOL)isPlaying;
 

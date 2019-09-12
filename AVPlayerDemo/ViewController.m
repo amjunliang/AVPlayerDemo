@@ -38,6 +38,9 @@ static NSString * const kTestURL = @"http://commondatastorage.googleapis.com/gtv
 
 - (void)viewDidLoad
 {
+    self.view.backgroundColor =
+    self.view.window.backgroundColor =
+    UIColor.blackColor;
     [super viewDidLoad];
     _timeLabel.textAlignment = NSTextAlignmentCenter;
     self.stateButton.enabled = NO;
@@ -53,6 +56,9 @@ static NSString * const kTestURL = @"http://commondatastorage.googleapis.com/gtv
 }
 
 - (void)viewDidLayoutSubviews {
+    self.view.backgroundColor =
+    self.view.window.backgroundColor =
+    UIColor.blackColor;
     [super viewDidLayoutSubviews];
     self.player.layer.frame = self.view.bounds;
 }

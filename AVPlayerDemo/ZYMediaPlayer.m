@@ -189,6 +189,8 @@
 }
 
 - (void)setup {
+    _readyToPlay = NO;
+
     if (_player) {
         [self removeObserver];
         [_player pause];
@@ -207,7 +209,6 @@
         }
         return;
     }
-    _readyToPlay = NO;
     _playerItem = [AVPlayerItem playerItemWithURL:url];
     _player = [AVPlayer playerWithPlayerItem:_playerItem];
     _playerLayer = [AVPlayerLayer playerLayerWithPlayer:_player];
