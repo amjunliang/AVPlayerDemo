@@ -26,7 +26,6 @@
 @property (nonatomic ,weak) IBOutlet UISlider *videoSlider; // 滑动条
 @property (nonatomic ,weak) IBOutlet UIProgressView *videoProgress; // 缓存进度
 @property (nonatomic ,weak) IBOutlet UIActivityIndicatorView *indicatorView; // loading状态
-@property (nonatomic ,weak) IBOutlet PlayerView *playerView;
 @property(nonatomic, strong) ZYMediaPlayer *player;
 
 @end
@@ -34,7 +33,7 @@
 @implementation ViewController
 //static NSString * const kTestURL = @"http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4";
 //static NSString * const kTestURL = @"http://v.jxvdy.com/sendfile/w5bgP3A8JgiQQo5l0hvoNGE2H16WbN09X-ONHPq3P3C1BISgf7C-qVs6_c8oaw3zKScO78I--b0BGFBRxlpw13sf2e54QA";
-static NSString * const kTestURL = @"http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+static NSString * const kTestURL = @"http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4";
 
 - (void)viewDidLoad
 {
@@ -50,7 +49,7 @@ static NSString * const kTestURL = @"http://commondatastorage.googleapis.com/gtv
 
     self.player = [[ZYMediaPlayer alloc] initWithUrl:kTestURL];
     if (self.player) {
-        [self.playerView.layer addSublayer:self.player.layer];
+        [self.view.layer insertSublayer:self.player.layer atIndex:0];
         self.player.delegate = self;
     }
 }
@@ -62,17 +61,25 @@ static NSString * const kTestURL = @"http://commondatastorage.googleapis.com/gtv
     [super viewDidLayoutSubviews];
     self.player.layer.frame = self.view.bounds;
 }
+
+- (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    [self.player pause];
+}
+
+
 #pragma mark - # ZYMediaPlayerDelegate
 - (void)player:(ZYMediaPlayer *)player didReadyToPlay:(NSTimeInterval)duration
 {
     [self.indicatorView stopAnimating];
     self.stateButton.enabled = YES;
     self.videoSlider.userInteractionEnabled = YES;
+    [self stateButtonTouched:nil];
 }
 
 - (void)player:(ZYMediaPlayer *)player didFailToPlay:(NSError *)error
 {
-    
+    NSLog(@"error: %@",error.localizedDescription);
 }
 
 - (void)playerDidPlayFinish:(ZYMediaPlayer *)player
@@ -107,13 +114,6 @@ static NSString * const kTestURL = @"http://commondatastorage.googleapis.com/gtv
         } else {
             [self.indicatorView startAnimating];
         }
-        
-    } else {
-        if (!isLoad && _seek) {
-            [self.indicatorView startAnimating];
-        } else {
-            [self.indicatorView stopAnimating];
-        }
     }
 }
 
@@ -135,6 +135,7 @@ static NSString * const kTestURL = @"http://commondatastorage.googleapis.com/gtv
         [self.stateButton setTitle:@"Stop" forState:UIControlStateNormal];
     } else {
         [self.player pause];
+        [self.indicatorView stopAnimating];
         [self.stateButton setTitle:@"Play" forState:UIControlStateNormal];
     }
     _played = !_played;

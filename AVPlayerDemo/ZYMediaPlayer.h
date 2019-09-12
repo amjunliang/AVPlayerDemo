@@ -42,7 +42,6 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)mute:(BOOL)mute;//是否静音
 - (BOOL)isPlayFinish;
 - (BOOL)isPlaying;
-
 @end
 
 NS_ASSUME_NONNULL_END

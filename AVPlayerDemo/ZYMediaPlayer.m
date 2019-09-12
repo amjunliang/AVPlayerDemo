@@ -34,7 +34,7 @@
 }
 
 - (void)play {
-    if ([self errorCheck]) {
+    if ([self errorCheckIsPause:NO]) {
         return;
     }
 
@@ -52,7 +52,7 @@
 }
 
 - (void)replay {
-    if ([self errorCheck]) {
+    if ([self errorCheckIsPause:NO]) {
         return;
     }
 
@@ -61,7 +61,7 @@
 }
 
 - (void)pause {
-    if ([self errorCheck]) {
+    if ([self errorCheckIsPause:YES]) {
         return;
     }
 
@@ -85,7 +85,7 @@
 }
 
 - (void)seekToTime:(NSTimeInterval)seconds complete:(void (^)(BOOL finished))complete{
-    if ([self errorCheck]) {
+    if ([self errorCheckIsPause:NO]) {
         return;
     }
 
@@ -112,7 +112,7 @@
 }
 
 - (void)mute:(BOOL)mute {
-    if ([self errorCheck]) {
+    if ([self errorCheckIsPause:NO]) {
         return;
     }
 
@@ -156,7 +156,7 @@
 
 - (void)updateUI
 {
-    if ([self errorCheck]) {
+    if ([self errorCheckIsPause:NO]) {
         return;
     }
     
@@ -165,7 +165,11 @@
     
     BOOL isLoad = NO;
     for (NSValue *value in _playerItem.loadedTimeRanges) {
-        if( CMTimeRangeContainsTime(value.CMTimeRangeValue, _playerItem.currentTime)) {
+        CMTimeRange range = value.CMTimeRangeValue;
+        if( CMTimeRangeContainsTime(range, _playerItem.currentTime) &&
+           CMTimeGetSeconds(range.duration) > 1 &&
+           _playerItem.isPlaybackLikelyToKeepUp
+           ) {
             isLoad = YES;
             break;
         }
@@ -184,8 +188,10 @@
 
 - (void)addPlayStatuCheck
 {
-    self.link = [CADisplayLink displayLinkWithTarget:self selector:@selector(updateUI)];
-    [self.link addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
+    if (!self.link) {
+        self.link = [CADisplayLink displayLinkWithTarget:self selector:@selector(updateUI)];
+        [self.link addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
+    }
 }
 
 - (void)setup {
@@ -193,7 +199,7 @@
 
     if (_player) {
         [self removeObserver];
-        [_player pause];
+        [self pause];
         [_player replaceCurrentItemWithPlayerItem:nil];
     }
     
@@ -225,23 +231,21 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(playFailed:) name:AVPlayerItemFailedToPlayToEndTimeNotification object:_player.currentItem];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(playStalled:) name:AVPlayerItemPlaybackStalledNotification object:_player.currentItem];
     
-    [_player.currentItem addObserver:self forKeyPath:@"status" options:NSKeyValueObservingOptionOld | NSKeyValueObservingOptionNew context:nil];//播放状态
+    [_playerItem addObserver:self forKeyPath:@"status" options:NSKeyValueObservingOptionOld | NSKeyValueObservingOptionNew context:nil];//播放状态
     [_player addObserver:self forKeyPath:@"rate" options:NSKeyValueObservingOptionNew context:nil];//播放速率
-    [_player.currentItem addObserver:self forKeyPath:@"loadedTimeRanges" options:NSKeyValueObservingOptionNew context:nil];//缓冲
-    [_player.currentItem addObserver:self forKeyPath:@"playbackLikelyToKeepUp" options:NSKeyValueObservingOptionNew context:nil];//是否可播放
-    [_player.currentItem addObserver:self forKeyPath:@"playbackBufferEmpty" options:NSKeyValueObservingOptionNew context:nil];
 }
 
 - (void)removeObserver {
+    if (!_player) {
+        return;
+    }
     [[NSNotificationCenter defaultCenter] removeObserver:self];
-    [_player removeTimeObserver:_playerTimeObserver];
-    [_player.currentItem removeObserver:self forKeyPath:@"status"];
+    [_playerItem removeObserver:self forKeyPath:@"status"];
     [_player removeObserver:self forKeyPath:@"rate"];
-    [_player.currentItem removeObserver:self forKeyPath:@"loadedTimeRanges"];
 }
 
 - (void)playFinished:(NSNotification *)notification {
-    if ([self errorCheck]) {
+    if ([self errorCheckIsPause:NO]) {
         return;
     }
 
@@ -257,9 +261,7 @@
 }
 
 - (void)playFailed:(NSNotification *)notification {
-    if (self.delegate && [self.delegate respondsToSelector:@selector(player:didFailToPlay:)]) {
-        [self errorCheck];
-    }
+    [self errorCheckIsPause:NO];
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context {
@@ -271,7 +273,7 @@
         switch (_player.currentItem.status) {
             case AVPlayerItemStatusUnknown:
                 //资源尚未载入，不在播放队列中
-                [self errorCheck];
+                [self errorCheckIsPause:NO];
                 break;
             case AVPlayerItemStatusReadyToPlay:
                 self.readyToPlay = YES;
@@ -281,7 +283,7 @@
                 [self updateUI];
                 break;
             case AVPlayerItemStatusFailed:
-                [self errorCheck];
+                [self errorCheckIsPause:NO];
                 break;
             default:
                 break;
@@ -293,8 +295,12 @@
     }
 }
 
-- (BOOL)errorCheck
+- (BOOL)errorCheckIsPause:(BOOL)isPause
 {
+    if (!_player) {
+        return NO;
+    }
+    
     NSError *error = nil;
     BOOL needReset = NO;
 
@@ -316,11 +322,10 @@
         [self setup];
     }
     
-    if (self.delegate && [self.delegate respondsToSelector:@selector(player:didFailToPlay:)]) {
-        [self.delegate player:self didFailToPlay:error];
-    }
-    
     if (error) {
+        if (!isPause && self.delegate && [self.delegate respondsToSelector:@selector(player:didFailToPlay:)]) {
+            [self.delegate player:self didFailToPlay:error];
+        }
         return YES;
     } else {
         return NO;
