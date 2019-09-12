@@ -7,6 +7,7 @@
 //
 
 #import "ZYMediaPlayer.h"
+#import "ZYWeakTarget.h"
 
 @interface ZYMediaPlayer () {
     AVPlayer *_player;
@@ -29,12 +30,13 @@
     if (self = [super init]) {
         self.mediaUrl = mediaUrl;
         [self setup];
+        
     }
     return self;
 }
 
 - (void)play {
-    if ([self errorCheckIsPause:NO]) {
+    if ([self errorCheckNotiDelegate:YES]) {
         return;
     }
 
@@ -48,11 +50,10 @@
         NSLog(@"%@", error);
     }
     [_player play];
-    [self addPlayStatuCheck];
 }
 
 - (void)replay {
-    if ([self errorCheckIsPause:NO]) {
+    if ([self errorCheckNotiDelegate:YES]) {
         return;
     }
 
@@ -61,7 +62,7 @@
 }
 
 - (void)pause {
-    if ([self errorCheckIsPause:YES]) {
+    if ([self errorCheckNotiDelegate:NO]) {
         return;
     }
 
@@ -69,7 +70,6 @@
         return;
     }
     [_player pause];
-    [self removePlayStatuCheck];
 }
 
 - (BOOL)isPlaying {
@@ -85,7 +85,7 @@
 }
 
 - (void)seekToTime:(NSTimeInterval)seconds complete:(void (^)(BOOL finished))complete{
-    if ([self errorCheckIsPause:NO]) {
+    if ([self errorCheckNotiDelegate:YES]) {
         return;
     }
 
@@ -112,7 +112,7 @@
 }
 
 - (void)mute:(BOOL)mute {
-    if ([self errorCheckIsPause:NO]) {
+    if ([self errorCheckNotiDelegate:YES]) {
         return;
     }
 
@@ -127,6 +127,7 @@
 - (void)dealloc {
     [_player pause];
     [self removeObserver];
+    [self removePlayStatuCheck];
 }
 
 - (NSTimeInterval)availableDuration {
@@ -156,7 +157,7 @@
 
 - (void)updateUI
 {
-    if ([self errorCheckIsPause:NO]) {
+    if ([self errorCheckNotiDelegate:NO]) {
         return;
     }
     
@@ -189,7 +190,7 @@
 - (void)addPlayStatuCheck
 {
     if (!self.link) {
-        self.link = [CADisplayLink displayLinkWithTarget:self selector:@selector(updateUI)];
+        self.link = [CADisplayLink displayLinkWithTarget:[ZYWeakTarget weakTarget:self] selector:@selector(updateUI)];
         [self.link addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
     }
 }
@@ -199,8 +200,7 @@
 
     if (_player) {
         [self removeObserver];
-        [self pause];
-        [_player replaceCurrentItemWithPlayerItem:nil];
+        [self removePlayStatuCheck];
     }
     
     NSURL *url = [NSURL URLWithString:self.mediaUrl];
@@ -221,6 +221,7 @@
     _playerLayer.videoGravity = AVLayerVideoGravityResizeAspect;
     
     [self addObserver];
+    [self addPlayStatuCheck];
 }
 
 - (void)addObserver {
@@ -245,7 +246,7 @@
 }
 
 - (void)playFinished:(NSNotification *)notification {
-    if ([self errorCheckIsPause:NO]) {
+    if ([self errorCheckNotiDelegate:YES]) {
         return;
     }
 
@@ -261,7 +262,7 @@
 }
 
 - (void)playFailed:(NSNotification *)notification {
-    [self errorCheckIsPause:NO];
+    [self errorCheckNotiDelegate:YES];
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context {
@@ -273,7 +274,7 @@
         switch (_player.currentItem.status) {
             case AVPlayerItemStatusUnknown:
                 //资源尚未载入，不在播放队列中
-                [self errorCheckIsPause:NO];
+                [self errorCheckNotiDelegate:YES];
                 break;
             case AVPlayerItemStatusReadyToPlay:
                 self.readyToPlay = YES;
@@ -283,7 +284,7 @@
                 [self updateUI];
                 break;
             case AVPlayerItemStatusFailed:
-                [self errorCheckIsPause:NO];
+                [self errorCheckNotiDelegate:YES];
                 break;
             default:
                 break;
@@ -295,7 +296,7 @@
     }
 }
 
-- (BOOL)errorCheckIsPause:(BOOL)isPause
+- (BOOL)errorCheckNotiDelegate:(BOOL)notiDelegate
 {
     if (!_player) {
         return NO;
@@ -323,7 +324,7 @@
     }
     
     if (error) {
-        if (!isPause && self.delegate && [self.delegate respondsToSelector:@selector(player:didFailToPlay:)]) {
+        if (notiDelegate && self.delegate && [self.delegate respondsToSelector:@selector(player:didFailToPlay:)]) {
             [self.delegate player:self didFailToPlay:error];
         }
         return YES;

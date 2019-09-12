@@ -10,12 +10,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "AVPlayerDemo/ZYMediaPlayer.m"
-            timestampString = "589968398.5512789"
+            timestampString = "589970895.718906"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "64"
-            endingLineNumber = "64"
-            landmarkName = "-pause"
+            startingLineNumber = "160"
+            endingLineNumber = "160"
+            landmarkName = "-updateUI"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
