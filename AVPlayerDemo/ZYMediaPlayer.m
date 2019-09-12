@@ -16,32 +16,28 @@
     id _playerTimeObserver;
 }
 
-@property (nonatomic, strong)NSString *videoUrl;
-@property(nonatomic, strong) CADisplayLink *link; //卡顿监控
+@property (nonatomic, strong) NSString *mediaUrl;
+@property(nonatomic, strong) CADisplayLink *link; //loading监控
+@property(nonatomic, assign) BOOL readyToPlay;
 
 @end
 
 @implementation ZYMediaPlayer
 
-- (instancetype)initWithUrl:(NSString *)videoUrl
+- (instancetype)initWithUrl:(NSString *)mediaUrl
 {
-    if (videoUrl.length == 0) {
-        return nil;
-    }
-    
     if (self = [super init]) {
-        self.videoUrl = videoUrl;
+        self.mediaUrl = mediaUrl;
         [self setup];
     }
     return self;
 }
-- (void)dealloc {
-    [_player pause];
-
-    [self removeObserver];
-}
 
 - (void)play {
+    if ([self errorCheck]) {
+        return;
+    }
+
     if ([self isPlaying]) {
         return;
     }
@@ -52,18 +48,28 @@
         NSLog(@"%@", error);
     }
     [_player play];
+    [self addPlayStatuCheck];
 }
 
 - (void)replay {
+    if ([self errorCheck]) {
+        return;
+    }
+
     [_player seekToTime:kCMTimeZero];
     [self play];
 }
 
 - (void)pause {
+    if ([self errorCheck]) {
+        return;
+    }
+
     if (![self isPlaying]) {
         return;
     }
     [_player pause];
+    [self removePlayStatuCheck];
 }
 
 - (BOOL)isPlaying {
@@ -78,7 +84,11 @@
     return !result;
 }
 
-- (void)seekToTime:(NSTimeInterval)seconds {
+- (void)seekToTime:(NSTimeInterval)seconds complete:(void (^)(BOOL finished))complete{
+    if ([self errorCheck]) {
+        return;
+    }
+
     NSTimeInterval time = seconds;
     if (time < 0) {
         time = 0;
@@ -87,7 +97,8 @@
     if (time > duration) {
         time = duration;
     }
-    [_player seekToTime:CMTimeMake(time, 1)];
+    
+    [_player seekToTime:CMTimeMakeWithSeconds(time, 600) toleranceBefore:kCMTimeZero toleranceAfter:kCMTimeZero completionHandler:complete];
 }
 
 - (NSTimeInterval)duration {
@@ -101,6 +112,10 @@
 }
 
 - (void)mute:(BOOL)mute {
+    if ([self errorCheck]) {
+        return;
+    }
+
     _player.muted = mute;
 }
 
@@ -108,11 +123,14 @@
     return _playerLayer;
 }
 
-
-
 #pragma mark - Private
+- (void)dealloc {
+    [_player pause];
+    [self removeObserver];
+}
+
 - (NSTimeInterval)availableDuration {
-    if (!_playerItem) {
+    if (!self.readyToPlay) {
         return 0;
     }
     
@@ -121,7 +139,7 @@
     float startSeconds = CMTimeGetSeconds(timeRange.start);
     float durationSeconds = CMTimeGetSeconds(timeRange.duration);
     NSTimeInterval result = startSeconds + durationSeconds;// 计算缓冲总进度
-    return result;
+    return [self safeDouble:result];
 }
 
 - (double)safeDouble:(double)value
@@ -138,11 +156,10 @@
 
 - (void)updateUI
 {
-    if (!_playerItem) {
+    if ([self errorCheck]) {
         return;
     }
     
-    double duration = [self duration];
     double currentTime = [self currentTime];
     double availableDuration = [self availableDuration];// 计算缓冲进度
     
@@ -154,10 +171,9 @@
         }
     }
     
-    if (self.delegate && [self.delegate respondsToSelector:@selector(playerUpdateWithDuration:currentTime:availableDuration:assetLoaded:)]) {
-        [self.delegate playerUpdateWithDuration:duration currentTime:currentTime availableDuration:availableDuration assetLoaded:isLoad];
+    if (self.delegate && [self.delegate respondsToSelector:@selector(playerUpdate:currentTime:availableDuration:resourceLoaded:)]) {
+        [self.delegate playerUpdate:self currentTime:currentTime availableDuration:availableDuration resourceLoaded:isLoad];
     }
-
 }
 
 - (void)removePlayStatuCheck
@@ -173,25 +189,35 @@
 }
 
 - (void)setup {
-    if (self.videoUrl.length == 0) {
-        return;
-    }
-    NSURL *url = [NSURL URLWithString:self.videoUrl];
-    if (!url) {
-        return;
+    if (_player) {
+        [self removeObserver];
+        [_player pause];
+        [_player replaceCurrentItemWithPlayerItem:nil];
     }
     
+    NSURL *url = [NSURL URLWithString:self.mediaUrl];
+    if (self.mediaUrl.length) {
+        url = [NSURL URLWithString:self.mediaUrl];
+    }
+    
+    if (!url) {
+       NSError *error = [NSError errorWithDomain:[NSString stringWithFormat:@"com.iReader.%@",NSStringFromClass(self.class)] code:-1 userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"播放链接无效",NSLocalizedDescriptionKey,nil]];
+        if (self.delegate && [self.delegate respondsToSelector:@selector(player:didFailToPlay:)]) {
+            [self.delegate player:self didFailToPlay:error];
+        }
+        return;
+    }
+    _readyToPlay = NO;
     _playerItem = [AVPlayerItem playerItemWithURL:url];
     _player = [AVPlayer playerWithPlayerItem:_playerItem];
     _playerLayer = [AVPlayerLayer playerLayerWithPlayer:_player];
     _playerLayer.videoGravity = AVLayerVideoGravityResizeAspect;
     
-    [self addPlayStatuCheck];
     [self addObserver];
 }
 
 - (void)addObserver {
-    if (!_player.currentItem) {
+    if (!_player) {
         return;
     }
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(playFinished:) name:AVPlayerItemDidPlayToEndTimeNotification object:_player.currentItem];
@@ -211,8 +237,16 @@
     [_player.currentItem removeObserver:self forKeyPath:@"status"];
     [_player removeObserver:self forKeyPath:@"rate"];
     [_player.currentItem removeObserver:self forKeyPath:@"loadedTimeRanges"];
-    [_player.currentItem removeObserver:self forKeyPath:@"playbackLikelyToKeepUp"];
-    [_player.currentItem removeObserver:self forKeyPath:@"playbackBufferEmpty"];
+}
+
+- (void)playFinished:(NSNotification *)notification {
+    if ([self errorCheck]) {
+        return;
+    }
+
+    if (self.delegate && [self.delegate respondsToSelector:@selector(playerDidPlayFinish:)]) {
+        [self.delegate playerDidPlayFinish:self];
+    }
 }
 
 - (void)playStalled:(NSNotification *)notification {
@@ -221,15 +255,9 @@
     }
 }
 
-- (void)playFinished:(NSNotification *)notification {
-    if (self.delegate && [self.delegate respondsToSelector:@selector(playerDidPlayFinish:)]) {
-        [self.delegate playerDidPlayFinish:self];
-    }
-}
-
 - (void)playFailed:(NSNotification *)notification {
     if (self.delegate && [self.delegate respondsToSelector:@selector(player:didFailToPlay:)]) {
-        [self.delegate player:self didFailToPlay:_playerItem.error];
+        [self errorCheck];
     }
 }
 
@@ -237,20 +265,22 @@
     if (_player == nil) {
         return;
     }
+    
     if ([keyPath isEqualToString:@"status"]) {//播放状态
         switch (_player.currentItem.status) {
             case AVPlayerItemStatusUnknown:
                 //资源尚未载入，不在播放队列中
+                [self errorCheck];
                 break;
             case AVPlayerItemStatusReadyToPlay:
-                if (self.delegate && [self.delegate respondsToSelector:@selector(playerDidReadyToPlay:)]) {
-                    [self.delegate playerDidReadyToPlay:self];
+                self.readyToPlay = YES;
+                if (self.delegate && [self.delegate respondsToSelector:@selector(player:didReadyToPlay:)]) {
+                    [self.delegate player:self didReadyToPlay:[self duration]];
                 }
+                [self updateUI];
                 break;
             case AVPlayerItemStatusFailed:
-                if (self.delegate && [self.delegate respondsToSelector:@selector(player:didFailToPlay:)]) {
-                    [self.delegate player:self didFailToPlay:_player.currentItem.error];
-                }
+                [self errorCheck];
                 break;
             default:
                 break;
@@ -259,6 +289,40 @@
     } else if ([keyPath isEqualToString:@"loadedTimeRanges"]) {//缓冲
     } else if ([keyPath isEqualToString:@"playbackLikelyToKeepUp"]) {//buffer好了，可播放
     } else if ([keyPath isEqualToString:@"playbackBufferEmpty"]) { //buffer空了
+    }
+}
+
+- (BOOL)errorCheck
+{
+    NSError *error = nil;
+    BOOL needReset = NO;
+
+    if (!self.readyToPlay) {
+        error = [NSError errorWithDomain:[NSString stringWithFormat:@"com.iReader.%@",NSStringFromClass(self.class)] code:-1 userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"播放器未初始化完成无效",NSLocalizedDescriptionKey,nil]];
+    }
+    
+    if (!error && _player.error) {
+        error = _player.error;
+        needReset = YES;
+    }
+    
+    if (!error && _playerItem.error) {
+        error = _playerItem.error;
+        needReset = YES;
+    }
+    
+    if (needReset) {
+        [self setup];
+    }
+    
+    if (self.delegate && [self.delegate respondsToSelector:@selector(player:didFailToPlay:)]) {
+        [self.delegate player:self didFailToPlay:error];
+    }
+    
+    if (error) {
+        return YES;
+    } else {
+        return NO;
     }
 }
 
