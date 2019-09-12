@@ -44,8 +44,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)isPlayFinish;
 - (BOOL)isPlaying;
 
-- (void)popFullScreenOriginal:(CGRect)original
-           fromViewController:(UIViewController *)viewController;
+- (void)presentFullScreen:(UIViewController *)fromVC;
 @end
 
 NS_ASSUME_NONNULL_END

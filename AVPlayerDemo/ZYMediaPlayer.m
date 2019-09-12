@@ -119,8 +119,7 @@
     _player.muted = mute;
 }
 
-- (void)popFullScreenOriginal:(CGRect)original
-           fromViewController:(UIViewController *)viewController
+- (void)presentFullScreen:(UIViewController *)fromVC
 {
     
 }

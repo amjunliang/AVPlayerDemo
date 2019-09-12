@@ -50,7 +50,7 @@ static NSString * const kTestURL = @"http://commondatastorage.googleapis.com/gtv
     if (self.player) {
         [self.view.layer insertSublayer:self.player.layer atIndex:0];
         self.player.delegate = self;
-    }
+    }    
 }
 
 - (void)viewDidLayoutSubviews {
