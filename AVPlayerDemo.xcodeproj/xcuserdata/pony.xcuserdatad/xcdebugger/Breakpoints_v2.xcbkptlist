@@ -9,13 +9,13 @@
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "AVPlayerDemo/ZYMediaPlayer.m"
-            timestampString = "589976430.5221111"
+            filePath = "AVPlayerDemo/ViewController.m"
+            timestampString = "590301076.138779"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "320"
-            endingLineNumber = "320"
-            landmarkName = "-errorCheckNotiDelegate:"
+            startingLineNumber = "147"
+            endingLineNumber = "147"
+            landmarkName = "-stateButtonTouched:"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

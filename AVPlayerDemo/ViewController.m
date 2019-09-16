@@ -41,16 +41,24 @@ static NSString * const kTestURL = @"http://commondatastorage.googleapis.com/gtv
     UIColor.blackColor;
     [super viewDidLoad];
     _timeLabel.textAlignment = NSTextAlignmentCenter;
+    [self customVideoSlider];
+    [self setupPlayer];
+}
+
+- (void)setupPlayer
+{
     self.stateButton.enabled = NO;
     self.videoSlider.userInteractionEnabled = NO;
     [self.indicatorView startAnimating];
-    [self customVideoSlider];
-
+    [self.player.layer removeFromSuperlayer];
+    self.player = nil;
+    
     self.player = [[ZYMediaPlayer alloc] initWithUrl:kTestURL];
     if (self.player) {
         [self.view.layer insertSublayer:self.player.layer atIndex:0];
         self.player.delegate = self;
-    }    
+    }
+    [self.view setNeedsLayout];
 }
 
 - (void)viewDidLayoutSubviews {
@@ -73,12 +81,17 @@ static NSString * const kTestURL = @"http://commondatastorage.googleapis.com/gtv
     [self.indicatorView stopAnimating];
     self.stateButton.enabled = YES;
     self.videoSlider.userInteractionEnabled = YES;
-    [self stateButtonTouched:nil];
+    [self.stateButton setTitle:@"Play" forState:UIControlStateNormal];
 }
 
 - (void)player:(ZYMediaPlayer *)player didFailToPlay:(NSError *)error
 {
     NSLog(@"error: %@",error.localizedDescription);
+    [self.indicatorView stopAnimating];
+    if (!self.player.invalid) {
+        self.stateButton.enabled = YES;
+        [self.stateButton setTitle:@"Retry" forState:UIControlStateNormal];
+    }
 }
 
 - (void)playerDidPlayFinish:(ZYMediaPlayer *)player
@@ -128,7 +141,15 @@ static NSString * const kTestURL = @"http://commondatastorage.googleapis.com/gtv
     [self.videoSlider layoutIfNeeded];
 }
 
+
 - (IBAction)stateButtonTouched:(id)sender {
+    
+    if (!self.player.invalid) {
+        [self.stateButton setTitle:@"Retry" forState:UIControlStateNormal];
+        [self setupPlayer];
+        return;
+    }
+    
     if (!_played) {
         [self.player play];
         [self.stateButton setTitle:@"Stop" forState:UIControlStateNormal];

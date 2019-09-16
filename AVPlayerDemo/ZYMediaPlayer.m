@@ -20,6 +20,7 @@
 @property (nonatomic, strong) NSString *mediaUrl;
 @property(nonatomic, strong) CADisplayLink *link; //loading监控
 @property(nonatomic, assign) BOOL readyToPlay;
+@property(nonatomic, assign) BOOL invalid;
 
 @end
 
@@ -29,6 +30,7 @@
 {
     if (self = [super init]) {
         self.mediaUrl = mediaUrl;
+        self.invalid = YES;
         [self setup];
         
     }
@@ -311,10 +313,12 @@
 
     if (!error && _player.error) {
         error = _player.error;
+        self.invalid = NO;
     }
     
     if (!error && _playerItem.error) {
         error = _playerItem.error;
+        self.invalid = NO;
     }
     
     if (!error && !self.readyToPlay) {

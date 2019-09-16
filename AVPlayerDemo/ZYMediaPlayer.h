@@ -23,6 +23,7 @@ NS_ASSUME_NONNULL_BEGIN
          currentTime:(NSTimeInterval)currentTime
    availableDuration:(NSTimeInterval)availableDuration
       resourceLoaded:(BOOL)isLoad;
+
 @end
 
 
@@ -31,6 +32,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong, readonly)NSString *mediaUrl;
 @property (nonatomic, weak)id<ZYMediaPlayerDelegate> delegate;
 @property (nonatomic, strong, readonly)AVPlayerLayer *layer;
+@property(nonatomic, readonly) BOOL invalid;
 
 - (instancetype)initWithUrl:(NSString *)mediaUrl;
 - (void)play;
