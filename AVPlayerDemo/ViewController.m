@@ -159,6 +159,10 @@ static NSString * const kTestURL = @"http://commondatastorage.googleapis.com/gtv
         [self.stateButton setTitle:@"Play" forState:UIControlStateNormal];
     }
     _played = !_played;
+    
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        self.player = nil;
+    });
 }
 
 - (IBAction)videoSlierChangeValueBegin:(id)sender {
@@ -166,7 +170,7 @@ static NSString * const kTestURL = @"http://commondatastorage.googleapis.com/gtv
 }
 
 - (IBAction)videoSlierChangeValue:(id)sender {
-    
+    self.timeLabel.text = [NSString stringWithFormat:@"%.fs/%.fs",self.player.duration * self.videoSlider.value,self.player.duration];
 }
 
 - (IBAction)videoSlierChangeValueEnd:(id)sender {

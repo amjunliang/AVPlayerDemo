@@ -32,7 +32,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong, readonly)NSString *mediaUrl;
 @property (nonatomic, weak)id<ZYMediaPlayerDelegate> delegate;
 @property (nonatomic, strong, readonly)AVPlayerLayer *layer;
-@property(nonatomic, readonly) BOOL invalid;
+@property(nonatomic, readonly) BOOL invalid;// 可用性, 不可用的时候需要重新创建, 在点击事件如, 播放时判断.
 
 - (instancetype)initWithUrl:(NSString *)mediaUrl;
 - (void)play;

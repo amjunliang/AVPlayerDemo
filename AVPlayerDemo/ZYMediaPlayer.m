@@ -64,10 +64,6 @@
 }
 
 - (void)pause {
-    if ([self errorCheckNotiDelegate:NO]) {
-        return;
-    }
-
     if (![self isPlaying]) {
         return;
     }
@@ -133,6 +129,7 @@
 #pragma mark - Private
 - (void)dealloc {
     [_player pause];
+    [_playerLayer removeFromSuperlayer];
     [self removeObserver];
     [self removePlayStatuCheck];
 }
@@ -314,11 +311,13 @@
     if (!error && _player.error) {
         error = _player.error;
         self.invalid = NO;
+        [self pause];
     }
     
     if (!error && _playerItem.error) {
         error = _playerItem.error;
         self.invalid = NO;
+        [self pause];
     }
     
     if (!error && !self.readyToPlay) {
@@ -326,7 +325,6 @@
     }
     
     if (error) {
-        [_player play];
         if (notiDelegate && self.delegate && [self.delegate respondsToSelector:@selector(player:didFailToPlay:)]) {
             [self.delegate player:self didFailToPlay:error];
         }
